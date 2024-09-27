@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pathfinder Suggestor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <form id="miFormulario">
+        <div class="form-block">
+            <h1>Pathfinder Suggestor</h1>
+            <label for="layer">Layer:</label>
+            <input type="text" id="layer" name="layer" required><br>
+    
+            <label for="latitude">Latitude:</label>
+            <input type="number" id="latitude" name="latitude" step="any" required><br>
+    
+            <label for="longitude">Longitude</label>
+            <input type="number" id="longitude" name="longitude" step="any" required><br>
+    
+            <label for="MCDAModel">MCDA Model:</label>
+            <input type="text" id="MCDAModel" name="MCDAModel" required><br>
+        </div>
+        
+        <div class="form-flex">
+            <button type="submit" class="inline-button">Predict Sizes</button>
+            <label for="size" class="inline-input">Size:</label>
+            <input type="text" id="size" name="size">
+        </div><br><br>
+    </form>
+    <form id="resultado">        
+        <label for="minRes">Min Resistance:</label><br>
+        <input type="number" id="minRes" name="minRes" required><br><br>
+        
+        <label for="maxRes">Max Resistance:</label><br>
+        <input type="number" id="maxRes" name="maxRes" required><br><br>
+        
+        <div class="form-flex">
+            <button type="submit">Predict Resistances</button>
+            <div id="resistance"></div>
+        </div>  
+    </form>
+    <h1>Select Coordinates</h1>
+    <div id="map"></div>
+    <form id="coordinatesForm">
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+    </form>  
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>        
+        $(document).ready(function() {
+            var map = L.map('map').setView([51.505, -0.09], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                }).addTo(map);
+
+            var marker;
+                
+                
+            map.on('click', function(e) {
+                var lat = e.latlng.lat;
+                var lng = e.latlng.lng;
+
+                if (marker) {
+                    marker.setLatLng(e.latlng);
+                } else {
+                    marker = L.marker(e.latlng).addTo(map);
+                }
+
+                $('#latitude').val(lat);
+                $('#longitude').val(lng);
+            });
+            
+            $('#miFormulario').submit(function(event) {
+                event.preventDefault();
+
+                var formData = {
+                    'layer': [$('#layer').val()],
+                    'latitude': $('#latitude').val(),
+                    'longitude': $('#longitude').val(),
+                    'MCDAModel': $('#MCDAModel').val()
+                };
+                console.log(formData)
+                $.ajax({
+                    type: 'POST',
+                    url: 'http://54.75.109.105:5000/api/size_suggestor',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log(data)
+                        $('#size').val(data.resultado);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('Error:', error);
+                    }
+                });
+            });
+            
+            $('#resultado').submit(function(event) {
+                event.preventDefault();
+                 var sizeListStr = $('#size').val().split(',');
+                 var sizeListInt = sizeListStr.map(function(item) {
+                     return parseInt(item.trim());
+                 });
+
+                var formData = {
+                    'layer': [$('#layer').val()],
+                    'latitude': $('#latitude').val(),
+                    'longitude': $('#longitude').val(),
+                    'MCDAModel': $('#MCDAModel').val(),
+                    'size': sizeListInt,
+                    'minRes': parseInt($('#minRes').val()),
+                    'maxRes': parseInt($('#maxRes').val())
+                };
+                
+                $.ajax({
+                    type: 'POST',
+                    url: 'http://54.75.109.105:5000/api/resistance_suggestor',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#resistance').html('<div>Resistances: ' + data.resultado + '</div>');
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

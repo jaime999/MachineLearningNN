@@ -1,0 +1,20 @@
+.form-block label,
+.form-block input,
+.form-block h1 {
+    display:block;
+}
+
+button {
+    margin-right:2%
+}
+
+.form-flex {
+    display:flex;
+}
+
+#map {
+    width: 30%;
+    height: 400px;
+    margin: 20px 0;
+}
+
