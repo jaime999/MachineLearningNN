@@ -1,0 +1,6 @@
+UltimatePathfinderSuggestions.py
+setup.py
+suggestionsPackage.egg-info/PKG-INFO
+suggestionsPackage.egg-info/SOURCES.txt
+suggestionsPackage.egg-info/dependency_links.txt
+suggestionsPackage.egg-info/top_level.txt
